@@ -9,7 +9,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.js"></script>
 
-  <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+  <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
   
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
@@ -20,11 +20,11 @@
     <h3 id="status" class="btn btn-danger"></h3>
   </center>
 
-  <script src="main.js"></script>
 
 <script>
-    img = "";
+img = "";
 status = "";
+objects = [];
 
 function preload(){
     img = loadImage("bottle.jpg");
@@ -46,19 +46,28 @@ function modelLoaded(){
 function gotResults(error, results){
     if(error){
         console.log(error);
+        return;
     }
     console.log(results);
+    objects = results;
+    document.getElementById("status").innerHTML = "Status: " + objects.length + " object(s) detected";
 }
 
 function draw(){
     image(img, 0, 0, 640, 420);
-    fill("#FF0000");
-    text("Bottle", 45, 75);
-    noFill();
-    stroke("#FF0000");
-    rect(30, 60, 275, 355);
+    // the model works on the original image size, so scale its boxes to the 640x420 canvas
+    scaleX = 640 / img.width;
+    scaleY = 420 / img.height;
+    for(i = 0; i < objects.length; i++){
+        percent = floor(objects[i].confidence * 100);
+        fill("#FF0000");
+        noStroke();
+        text(objects[i].label + " " + percent + "%", objects[i].x * scaleX + 15, objects[i].y * scaleY + 15);
+        noFill();
+        stroke("#FF0000");
+        rect(objects[i].x * scaleX, objects[i].y * scaleY, objects[i].width * scaleX, objects[i].height * scaleY);
+    }
 }
-
 </script>
 </body>
 </html>
